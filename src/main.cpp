@@ -23,23 +23,21 @@
 #define DEVICE_TIMER 600
 #define SMALLEST_CODE 10000000
 #define GET_DEVICE_NUM 10000000
-#define CODE_AMOUNT 10
+#define CODE_AMOUNT 100
 
-#define INIT 1
-#define CORRECT_LCD 2
-#define INCORRECT_LCD 3
-#define PRINT_STAR 4
+#define LCD_INIT 900
+#define CORRECT_LCD 901
+#define INCORRECT_LCD 902
+#define LCD_CONNECTING_WIFI 904
 
-#define COMPARE_SET 5
+
+#define COMPARE_INIT 200
+#define COMPARE_SET 201
 
 #define DEVICE_1 13
 #define DEVICE_2 14
 #define DEVICE_3 15
 #define DEVICE_4 16
-#define DEVICE_5 17
-#define DEVICE_6 18
-#define DEVICE_7 19
-#define DEVICE_8 23
 #define SD_CS 5
 // Varies for server and WiFi connect
 AsyncWebServer server(80);
@@ -54,9 +52,8 @@ unsigned long timerDelay = 5000;
 int countCode = 0;
 String serverCode[CODE_AMOUNT];
 String responseCode;
-int servercode[CODE_AMOUNT];
 int timercode[CODE_AMOUNT];
-int st = 0;
+int device[CODE_AMOUNT];
 
 LiquidCrystal_I2C lcd(0x25, 16, 2);
 
@@ -68,36 +65,29 @@ String code_from_keypad = "";
 int keycode, keycode1;
 // 12 status for 12 state machine
 int status1, status2, status3, status4, status5, status6, status7, status8, status9, status10, status11, status12 = 0;
-int compare_status;
+int compare_status = COMPARE_INIT;
 // active_flag for 8 device
 int device_flag[8];
 
-// active flag for lcd
-int lcd_flag;
-int lcd_timer;
+// keypad num
+int keyin = 0;
 
-String device1Send = "11111111";
-String device2Send = "22222222";
-String device3Send = "33333333";
-String device4Send = "44444444";
-String device5Send = "55555555";
-String device6Send = "66666666";
-String device7Send = "77777777";
-String device8Send = "88888888";
-String message1 = "{\"status\":\"OK\",\"message\":\"" + device1Send + "\"}";
-String message2 = "{\"status\":\"OK\",\"message\":\"" + device2Send + "\"}";
-String message3 = "{\"status\":\"OK\",\"message\":\"" + device3Send + "\"}";
-String message4 = "{\"status\":\"OK\",\"message\":\"" + device4Send + "\"}";
-String message5 = "{\"status\":\"OK\",\"message\":\"" + device5Send + "\"}";
-String message6 = "{\"status\":\"OK\",\"message\":\"" + device6Send + "\"}";
-String message7 = "{\"status\":\"OK\",\"message\":\"" + device7Send + "\"}";
-String message8 = "{\"status\":\"OK\",\"message\":\"" + device8Send + "\"}";
+
+// active flag for lcd
+int lcd_flag = LCD_INIT;
+int lcd_timer = 0;
+
+String message = "";
+String message1 = "";
 
 float currentSample[9][100];
 float curr[9] = {0,0,0,0,0,0,0,0,0};
 int sample[9] = {0,0,0,0,0,0,0,0,0};
 int deviceTimer[9];
 int waitConnectTimer = 300;
+
+
+
 // Hàm ghi file mới
 void writeFile(fs::FS &fs, const char *path, const char *message) {
   Serial.printf("Writing file: %s\n", path);
@@ -150,17 +140,25 @@ void initWiFi() {
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.println("WiFi...");
     Serial.println("Connecting to WiFi...");
   }
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(WiFi.localIP());
   Serial.println("Connected to WiFi");
   Serial.println(WiFi.localIP());
 }
+
 int keyNum(int n){
+
   switch (n)
   {
-    case 0:
-      return 99999999;
-      break;
+    // case 0:
+    //   return 99999999;
+    //   break;
     case 1:
       return 7;
       break;
@@ -182,9 +180,9 @@ int keyNum(int n){
     case 7:
       return 2;
       break;
-    case 8:
-      return 99999999;
-      break;
+    // case 8:
+    //   return 99999999;
+    //   break;
     case 9:
       return 9;
       break;
@@ -250,9 +248,23 @@ int keyNum_sToi(const char n){
   if(n == '9') return 9;
   return 0;
 }
+int keyNum_xToi(String n){
+  if(n == "0") return 0;
+  if(n == "1") return 1;
+  if(n == "2") return 2;
+  if(n == "3") return 3;
+  if(n == "4") return 4;
+  if(n == "5") return 5;
+  if(n == "6") return 6;
+  if(n == "7") return 7;
+  if(n == "8") return 8;
+  if(n == "9") return 9;
+  return 0;
+}
+int x = 0;
 void keypad(){
-    currTouched = cap.touched();
-    if (keycode < SMALLEST_CODE){
+      if(lcd_timer == 0) currTouched = cap.touched();
+      if (keycode < SMALLEST_CODE){
         for (uint8_t i=0; i<12; i++) 
         {
           int checkKey1, checkKey2 = 0;
@@ -264,96 +276,174 @@ void keypad(){
             if (!(currTouched & _BV(i)) && (lastTouched & _BV(i)) ) {
                 checkKey2++;
             }
-            if ((checkKey1 >= 1) && (checkKey2 == 1))
+            if ((checkKey1 > 0) && (checkKey2 > 0) && (keyNum(i) != -1) && (lcd_timer == 0))
             {
-                lcd.clear();
+                
+                lcd.setCursor(x++, 1);
+                lcd.print("*");
+
+                if(x == 8) 
+                { 
+                  lcd.setCursor(0, 1);
+                  lcd.print("********        ");
+                  lcd_timer = 50;
+                  x = 0;
+                }
                 Serial.print(keyNum(i)); 
                 if (keyNum(i) >= 0 && keyNum(i) < 10)
                 {
                   keycode = keycode*10 + keyNum(i);
                   checkKey1 = 0; checkKey2 = 0;
                 }
-                else if (keyNum(i) == 10)
-                {
-                  checkKey1 = 0; checkKey2 = 0;
-                  lcd_flag = 2;
-                  break;
-                }
             }
         }
-    }
-    else {
-        Serial.println();
-        keycode1 = keycode;
-        for(int i = 1; i < 9; i++)
-        {
-          code_from_keypad = keyNum_iTos(keycode%10) + code_from_keypad;
-          keycode = keycode/10;
-        }
-        keycode = 0;
-    }
-    lastTouched = currTouched;
-
+      }
+      else {
+          Serial.println();
+          keycode1 = keycode;
+          for(int i = 1; i < 9; i++)
+          {
+            code_from_keypad = keyNum_iTos(keycode%10) + code_from_keypad;
+            keycode = keycode/10;
+          }
+          // Serial.print("code from keypad: ");
+          // Serial.println(code_from_keypad);
+          keycode = 0;
+      }
+      lastTouched = currTouched;
     return;
 }
-void compare(){
-  switch (compare_status)
-  {
-  case INIT:
-    compare_status = COMPARE_SET;
-    break;
-  case COMPARE_SET:
-    int x = keycode1/GET_DEVICE_NUM;
-    for (int i = 0; i < CODE_AMOUNT; i++)
+int temp[8];
+int stringToInt(String str) {
+    for (int i = 0; i < str.length(); i++)
     {
-      if(code_from_keypad == serverCode[i] && code_from_keypad != "")
+      switch (str[i])
       {
-        Serial.println(x);
-        device_flag[x] = 1;
-        deviceTimer[x] = DEVICE_TIMER;
-        lcd_flag = CORRECT_LCD;
-        lcd_timer = 1;
-        code_from_keypad = "";          
-        serverCode[i] = "";
-      }
-      else if (code_from_keypad != serverCode[i] && code_from_keypad != "" && i == (CODE_AMOUNT - 1))
-      {
-        code_from_keypad = "";
-        lcd_flag = INCORRECT_LCD;
-        lcd_timer = 1;
+      case '0':
+         temp[i] = 0;
+        break;
+      case '1':
+         temp[i] = 1;
+        break;
+      case '2':
+         temp[i] = 2;
+        break;
+      case '3':
+         temp[i] = 3;
+        break;
+      case '4':
+         temp[i] = 4;
+        break;
+      case '5':
+         temp[i] = 5;
+        break;
+      case '6':
+         temp[i] = 6;
+        break;
+      case '7':
+         temp[i] = 7;
+        break;
+      case '8':
+         temp[i] = 8;
+        break;
+      case '9':
+         temp[i] = 9;
+        break;
+      default:
+        break;
       }
     }
-    break;
-  default:
-    break;
+  int number = 0;
+  for (int i = 0; i < str.length(); i++)
+  {
+    number += temp[i] * pow(10, str.length()-1-i);
+  }
+  return number;
+}
+
+void compare(){
+
+  if(!code_from_keypad.isEmpty())
+  {
+      for (int i = 0; i < CODE_AMOUNT; i++)
+      {
+            if (code_from_keypad == serverCode[i]) {
+                Serial.println("TUYET");
+                int x = device[i];
+                Serial.println(x);
+                device_flag[x] = 1;
+                deviceTimer[x] = timercode[i];    // xoá servercode sau khi so sánh xong 
+                lcd_flag = CORRECT_LCD;
+                // lcd_timer = 100;
+                message += "{";
+                message += "\"data\": {";
+                message += "\"id\": \"" + String(device[i]) + "\",";
+                message += "\"code\": \"" + serverCode[i] + "\",";
+                message += "\"totalTime\": \"" + String(timercode[i]) + "\",";
+                message += "\"validTime\": \"" + String("FALSE") + "\"";
+                message += "},";
+                message += "\"message\": \"success\"";
+                message += "}";
+                server.on("/get/input", HTTP_GET, [](AsyncWebServerRequest *request)
+                {
+                  request->send(200, "application/json", message);
+                  message = "{";
+                }
+                );
+                break;
+            }
+            else if ((i == (CODE_AMOUNT - 1)) && (code_from_keypad != serverCode[i])) {
+                lcd_flag = INCORRECT_LCD;
+                // lcd_timer = 100;
+            }
+      }
+      for(int i = 0; i < CODE_AMOUNT; i++)
+      {
+        if(!serverCode[i].isEmpty()) 
+        {
+          Serial.print("servercode "); Serial.print(i); Serial.print(" ");
+          Serial.println(serverCode[i]);
+        }
+      }
+      
+      Serial.print("Keycode: ");
+      Serial.println(code_from_keypad);
+      code_from_keypad = "";
   }
 }
 
 
 void lcd_task(){
-  int x = 0;
   switch (lcd_flag)
   {
-    case INIT:
-      lcd.clear();
-      lcd.setCursor(1, 0);
-      lcd.print("Nhap code");
+    case LCD_INIT:
+      lcd.setCursor(0, 0);
+      lcd.print("Nhap code       ");
+      
       break;
-    case PRINT_STAR:
-      lcd.setCursor(1, x++);
-      lcd.print("*");
-      break;
+
     case CORRECT_LCD:
-      lcd.clear();
-      lcd.setCursor(1, 0);
-      lcd.print("Hop le");
-      if (lcd_timer == 0) lcd_flag = 0;
+      lcd.setCursor(0, 0);
+      lcd.print("Hop le          ");
+
+      if (lcd_timer <= 0) 
+      {
+        lcd.clear();
+        lcd_flag = LCD_INIT;
+      }
+      else lcd_timer--;
+      
       break;
     case INCORRECT_LCD:
-      lcd.clear();
-      lcd.setCursor(1, 0);
-      lcd.print("Khong hop le");
-      if (lcd_timer == 0) lcd_flag = 0;
+      lcd.setCursor(0, 0);
+      lcd.print("Khong hop le    ");
+      if (lcd_timer <= 0) 
+      {
+        lcd.clear();
+        lcd_flag = LCD_INIT;
+      }
+      else lcd_timer--;
+
       break;
     default:
       break;
@@ -364,42 +454,77 @@ void notFound(AsyncWebServerRequest *request) {
   request->send(404, "text/plain", "Not found");
 }
 
-void server_func(){
+void server_func() {
   server.on("/post", HTTP_POST, [](AsyncWebServerRequest *request) {
-    if (request->hasParam("body", true)) {
-        String body = request->getParam("body", true)->value();
-        serverCode[countCode] = body;
-        timercode[countCode] = CODE_TIMER;
-        responseCode = body;
-        countCode++;
-        if(countCode == CODE_AMOUNT) countCode = 0;
-        Serial.print("RCV:");
-        Serial.println(body);
+    String response = "{";
+
+    if (request->hasParam("code", true) && 
+        request->hasParam("id", true) &&
+        request->hasParam("totalTime", true) &&
+        request->hasParam("validTime", true)
+    ) {
+
+        String id = request->getParam("id", true)->value();
+        String code = request->getParam("code", true)->value();
+        String totalTime = request->getParam("totalTime", true)->value();
+        String valid = request->getParam("validTime", true)->value();
+
+        if(valid == "TRUE")
+        {
+            serverCode[countCode] = code;
+            timercode[countCode] = stringToInt(totalTime);
+            
+            Serial.println(stringToInt(totalTime));
+
+            device[countCode] = keyNum_xToi(id);
+            countCode++;
+        }
+        else if(valid == "FALSE" || lcd_flag == CORRECT_LCD)
+        {
+          for (int i = 0; i < CODE_AMOUNT; i++)
+          {
+            if (code == serverCode[i])
+            {
+              serverCode[i] = "";
+              timercode[i] = 0;
+              device[i] = 0;
+            }
+          }
+        }
+
+      
+        if (countCode == CODE_AMOUNT) countCode = 0;
+
+        response += "\"data\": {";
+        response += "\"id\": \"" + id + "\",";
+        response += "\"code\": \"" + code + "\",";
+        response += "\"totalTime\": \"" + totalTime + "\",";
+        response += "\"validTime\": \"" + valid + "\"";
+        response += "},";
+        response += "\"message\": \"success\"";
+    } 
+    else {
+        response += "\"data\": null,";
+        response += "\"message\": \"fail\"";
     }
-    String response = "{\"code\":[";
-    for (int i = 0; i < 8; i++) {
-        response += responseCode[i];
-        if (i < 7) response += ",";
-    }
-    response += "]}";
+
+    response += "}";
 
     request->send(200, "application/json", response);
   });
-  
 
   server.begin();
 }
 void timer(){
-  for (int i = 0; i < CODE_AMOUNT; i++){
-    if(timercode[i] == 0) serverCode[i] = "";
-    else timercode[i]--;
-    if(lcd_timer > 0) lcd_timer--;
-  }
   for (int i = 0; i < 9; i++)
   {
     if(deviceTimer[i] > 0) deviceTimer[i]--;
   }
+  //if(lcd_timer > 0)lcd_timer--;
+  
 }
+
+
 
 
 void deviceProcess1(){
@@ -414,10 +539,9 @@ void deviceProcess1(){
       Serial.println(sample[1]);
     }
     else {
-      float power = (curr[1]/sample[1])*1000;
-      
-      String num = "1 " + String(power) + "\n";
 
+      float power = curr[1]/sample[1]; 
+      
       // if(!SD.begin(SD_CS))
       // {
       //   Serial.println();
@@ -427,17 +551,22 @@ void deviceProcess1(){
 
       if(WiFi.status() == WL_CONNECTED){
 
-        message1 = "{\"status\":\"OK\",\"message\":\"" + num + "\"}";
         digitalWrite(DEVICE_1, 0);
         device_flag[1] = 0;
         Serial.println("Sending to server");
-        // API trả về thông tin cơ bản
+        message1 += "{";
+        message1 += "\"ID\": \"" + String(1) + "\",";  
+        message1 += "\"Current\": \"" + String(power) + "\","; 
+        message1 += "\"message\": \"success\"";  
+        message1 += "}";  
+
         server.on("/get", HTTP_GET, [](AsyncWebServerRequest *request)
         {
           request->send(200, "application/json", message1);
+          message1 = "";
         }
         );
-
+        
         curr[1] = 0;
         sample[1] = 0;
       }
@@ -449,27 +578,77 @@ void deviceProcess1(){
   }
   server.begin();
 }
-void deviceProcess2(){}
-void deviceProcess3(){}
-void deviceProcess4(){}
-void deviceProcess5(){}
-void deviceProcess6(){}
-void deviceProcess7(){}
-void deviceProcess8(){}
+void deviceProcess2(){
+  if(device_flag[2]){
+    if(deviceTimer[2] > 0){
+      curr[2] += doc_ADS(2);
+      sample[2]++;
+      digitalWrite(DEVICE_2, 1);
+      Serial.print("2 ");
+      Serial.print(curr[2]);
+      Serial.print(" ");
+      Serial.println(sample[2]);
+    }
+    else {
+
+      float power = curr[2]/sample[2]; 
+      
+      // if(!SD.begin(SD_CS))
+      // {
+      //   Serial.println();
+      //   appendFile(SD, "/sample.txt", num.c_str());
+      //   readFile(SD, "/sample.txt");
+      // }
+
+      if(WiFi.status() == WL_CONNECTED){
+
+        digitalWrite(DEVICE_2, 0);
+        device_flag[2] = 0;
+        Serial.println("Sending to server");
+        message1 += "{";
+        message1 += "\"ID\": \"" + String(2) + "\",";  
+        message1 += "\"Current\": \"" + String(power) + "\","; 
+        message1 += "\"message\": \"success\"";  
+        message1 += "}";  
+
+        server.on("/get", HTTP_GET, [](AsyncWebServerRequest *request)
+        {
+          request->send(200, "application/json", message1);
+          message1 = "";
+        }
+        );
+        
+        curr[2] = 0;
+        sample[2] = 0;
+      }
+      else {
+        waitConnectTimer--;
+        WiFi.reconnect();
+      }
+    }
+  }
+  server.begin();
+}
+void deviceProcess3(){
+  if(device_flag[3]) Serial.println("device 3 opened");
+}
+void deviceProcess4(){
+  if(device_flag[4]) Serial.println("device 4 opened");
+}
+
+
+
 Scheduler ts;
 
 Task keypad_schedule            (1 * TASK_MILLISECOND, TASK_FOREVER, &keypad, &ts);
 Task compare_schedule           (1 * TASK_MILLISECOND, TASK_FOREVER, &compare, &ts);
-Task lcd_task_schedule          (1000 * TASK_MILLISECOND, TASK_FOREVER, &lcd_task, &ts);
+Task lcd_task_schedule          (1 * TASK_MILLISECOND, TASK_FOREVER, &lcd_task, &ts);
 Task timer_schedule             (1000 * TASK_MILLISECOND, TASK_FOREVER, &timer, &ts);
 Task device_process1_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceProcess1, &ts);
 Task device_process2_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceProcess2, &ts);
 Task device_process3_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceProcess3, &ts);
 Task device_process4_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceProcess4, &ts);
-Task device_process5_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceProcess5, &ts);
-Task device_process6_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceProcess6, &ts);
-Task device_process7_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceProcess7, &ts);
-Task device_process8_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceProcess8, &ts);
+
 
 
 
@@ -488,19 +667,15 @@ void setup(){
   pinMode(DEVICE_2, OUTPUT);
   pinMode(DEVICE_3, OUTPUT);
   pinMode(DEVICE_4, OUTPUT);
-  pinMode(DEVICE_5, OUTPUT);
-  pinMode(DEVICE_6, OUTPUT);
-  pinMode(DEVICE_7, OUTPUT);
-  pinMode(DEVICE_8, OUTPUT);
+  
+  initWiFi();
+  server_func();
+
   if (!cap.begin(0x5A)) {
     Serial.println("MPR121 not found, check wiring?");
     while (1);
   }
   Serial.println("MPR121 found!");  
-
-  initWiFi();
-
-  server_func();
   
   if (!SD.begin(SD_CS)) {
     Serial.println("SD card initialization failed!");
@@ -509,41 +684,50 @@ void setup(){
   Serial.println("SD card initialized.");
 
 
-  Serial.println("keypad start");
+  Serial.println("keypad online");
   keypad_schedule.enable();
 
-  Serial.println("process timer start");
+  Serial.println("process timer online");
   timer_schedule.enable();
 
-  Serial.println("compare start");
+  Serial.println("compare online");
   compare_schedule.enable();
 
-  Serial.println("lcd start");
+  Serial.println("lcd online");
   lcd_task_schedule.enable();
 
 
-  Serial.println("prc1 start ");
+  Serial.println("prc1 online ");
   device_process1_schedule.enable();
-  Serial.println("prc2 start ");
+  Serial.println("prc2 online ");
   device_process2_schedule.enable();
-  Serial.println("prc3 start ");
+  Serial.println("prc3 online ");
   device_process3_schedule.enable();
-  Serial.println("prc4 start ");
+  Serial.println("prc4 online ");
   device_process4_schedule.enable();
-  Serial.println("prc5 start ");
-  device_process5_schedule.enable();
-  Serial.println("prc6 start ");
-  device_process6_schedule.enable();
-  Serial.println("prc7 start ");
-  device_process7_schedule.enable();
-  Serial.println("prc8 start");
-  device_process8_schedule.enable();
 
   server.onNotFound(notFound);
 }
 void loop(){ 
     ts.execute();
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

@@ -19,15 +19,15 @@ float doc_ADS(int n)
   	int16_t val1_3 = ADS1.readADC(3);
 
   	float f = ADS.toVoltage(1);  //  voltage factor
-
-    float may1 = val_0 * f;
-    float may2 = val_1 * f;
-    float may3 = val_2 * f;
-    float may4 = val_3 * f;
-    float may11 = val1_0 * f;
-    float may12 = val1_1 * f;
-    float may13 = val1_2 * f;
-    float may14 = val1_3 * f;
+	
+    float may1 = ((val_0* f)/sqrt(2))*30;
+    float may2 = ((val_1 * f)/sqrt(2))*30;
+    float may3 = ((val_2 * f)/sqrt(2))*30;
+    float may4 = ((val_3 * f)/sqrt(2))*30;
+    float may11 = ((val1_0 * f)/sqrt(2))*30;
+    float may12 = ((val1_1 * f)/sqrt(2))*30;
+    float may13 = ((val1_2 * f)/sqrt(2))*30;
+    float may14 = ((val1_3 * f)/sqrt(2))*30;
 
     float a[9];
    	a[1] = may1;

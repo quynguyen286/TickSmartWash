@@ -1,6 +1,7 @@
 {
     "C_Cpp.errorSquiggles": "disabled",
     "files.associations": {
+        "*.dbclient-js": "javascript",
         "*.tcc": "cpp",
         "string": "cpp",
         "string_view": "cpp",
@@ -10,6 +11,10 @@
         "unordered_map": "cpp",
         "unordered_set": "cpp",
         "vector": "cpp",
-        "initializer_list": "cpp"
+        "initializer_list": "cpp",
+        "cmath": "cpp",
+        "numeric": "cpp",
+        "thread": "cpp",
+        "system_error": "cpp"
     }
 }
