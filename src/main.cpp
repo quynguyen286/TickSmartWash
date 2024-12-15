@@ -41,8 +41,8 @@
 #define SD_CS 5
 // Varies for server and WiFi connect
 AsyncWebServer server(80);
-const char *ssid = "AN COFFEE TRET";
-const char *password = "Ancoffeexinchao";
+const char *ssid = "Cham Cafe";
+const char *password = "Chamduocuocthay77";
 const char* PARAM_MESSAGE = "message";
 
 unsigned long previousMillis = 0;
@@ -455,7 +455,7 @@ void notFound(AsyncWebServerRequest *request) {
 }
 
 void server_func() {
-  server.on("/post", HTTP_POST, [](AsyncWebServerRequest *request) {
+  server.on("/abiquencwiue", HTTP_POST, [](AsyncWebServerRequest *request) {
     String response = "{";
 
     if (request->hasParam("code", true) && 
@@ -540,8 +540,7 @@ void deviceProcess1(){
     }
     else {
 
-      float power = curr[1]/sample[1]; 
-      
+      float power = curr[1]/sample[1];
       // if(!SD.begin(SD_CS))
       // {
       //   Serial.println();
@@ -557,6 +556,7 @@ void deviceProcess1(){
         message1 += "{";
         message1 += "\"ID\": \"" + String(1) + "\",";  
         message1 += "\"Current\": \"" + String(power) + "\","; 
+        // message1 += "\"valid\": \"" + String("FALSE") + "\",";  
         message1 += "\"message\": \"success\"";  
         message1 += "}";  
 
@@ -655,6 +655,7 @@ Task device_process4_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceP
 void setup(){ 
   Serial.begin(9600);
   Serial.println("Scheduling Options: setup()");
+  
   lcd.init();           
   lcd.backlight();
   Wire.begin();
@@ -662,7 +663,6 @@ void setup(){
   Serial.print("ADS1X15_LIB_VERSION: ");
   Serial.println(ADS1X15_LIB_VERSION);
   ADS.begin();
-  ADS1.begin();
   pinMode(DEVICE_1, OUTPUT);
   pinMode(DEVICE_2, OUTPUT);
   pinMode(DEVICE_3, OUTPUT);
@@ -746,20 +746,6 @@ void loop(){
 
 
 
-  // // Tạo file và ghi dữ liệu
-  // writeFile(SD, "/sample.txt", "this is a file for storing samples\n");
-
-  // // Đọc nội dung file
-  // readFile(SD, "/example.txt");
-
-  // // Ghi thêm dữ liệu vào file
-  // appendFile(SD, "/example.txt", "This is a second line.\n");
-
-  // // Đọc lại file để kiểm tra
-  // readFile(SD, "/example.txt");
-
-
-
 // // i2c scanner code
 
 // void setup()
@@ -809,13 +795,6 @@ void loop(){
 //   }
 //   delay(700);
 // }
-
-
-
-
-
-
-
 
 
 
