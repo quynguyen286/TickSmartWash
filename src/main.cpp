@@ -77,7 +77,7 @@ int keyin = 0;
 int lcd_flag = LCD_INIT;
 int lcd_timer = 0;
 
-String message = "";
+String message;
 String message1 = "";
 
 float currentSample[9][100];
@@ -374,6 +374,7 @@ void compare(){
                 device_flag[x] = 1;
                 deviceTimer[x] = timercode[i];    // xoá servercode sau khi so sánh xong 
                 lcd_flag = CORRECT_LCD;
+                
                 // lcd_timer = 100;
                 message += "{";
                 message += "\"data\": {";
@@ -387,9 +388,12 @@ void compare(){
                 server.on("/get/input", HTTP_GET, [](AsyncWebServerRequest *request)
                 {
                   request->send(200, "application/json", message);
-                  message = "{";
+                  message = "";
                 }
                 );
+                serverCode[i] = "";
+                timercode[i] = 0;
+                device[i] = 0;
                 break;
             }
             else if ((i == (CODE_AMOUNT - 1)) && (code_from_keypad != serverCode[i])) {
@@ -541,6 +545,7 @@ void deviceProcess1(){
     else {
 
       float power = curr[1]/sample[1];
+      String valid = "FALSE";
       // if(!SD.begin(SD_CS))
       // {
       //   Serial.println();
@@ -556,7 +561,6 @@ void deviceProcess1(){
         message1 += "{";
         message1 += "\"ID\": \"" + String(1) + "\",";  
         message1 += "\"Current\": \"" + String(power) + "\","; 
-        // message1 += "\"valid\": \"" + String("FALSE") + "\",";  
         message1 += "\"message\": \"success\"";  
         message1 += "}";  
 
