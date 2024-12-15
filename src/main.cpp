@@ -40,7 +40,7 @@
 #define DEVICE_4 16
 #define SD_CS 5
 // Varies for server and WiFi connect
-AsyncWebServer server(80);
+AsyncWebServer server(8080);
 const char *ssid = "Cham Cafe";
 const char *password = "Chamduocuocthay77";
 const char* PARAM_MESSAGE = "message";
@@ -459,7 +459,7 @@ void notFound(AsyncWebServerRequest *request) {
 }
 
 void server_func() {
-  server.on("/abiquencwiue", HTTP_POST, [](AsyncWebServerRequest *request) {
+  server.on("/post", HTTP_POST, [](AsyncWebServerRequest *request) {
     String response = "{";
 
     if (request->hasParam("code", true) && 
