@@ -41,8 +41,8 @@
 #define SD_CS 5
 // Varies for server and WiFi connect
 AsyncWebServer server(8080);
-const char *ssid = "Cham Cafe";
-const char *password = "Chamduocuocthay77";
+const char *ssid = "Kingshouse-1B";
+const char *password = "kingshouse2020";
 const char* PARAM_MESSAGE = "message";
 
 unsigned long previousMillis = 0;
@@ -306,8 +306,8 @@ void keypad(){
             code_from_keypad = keyNum_iTos(keycode%10) + code_from_keypad;
             keycode = keycode/10;
           }
-          // Serial.print("code from keypad: ");
-          // Serial.println(code_from_keypad);
+          Serial.print("Code from keypad: ");
+          Serial.println(code_from_keypad);
           keycode = 0;
       }
       lastTouched = currTouched;
@@ -368,9 +368,10 @@ void compare(){
       for (int i = 0; i < CODE_AMOUNT; i++)
       {
             if (code_from_keypad == serverCode[i]) {
-                Serial.println("TUYET");
                 int x = device[i];
-                Serial.println(x);
+                Serial.print("Device ");
+                Serial.print(x);
+                Serial.println(" opened");
                 device_flag[x] = 1;
                 deviceTimer[x] = timercode[i];    // xoá servercode sau khi so sánh xong 
                 lcd_flag = CORRECT_LCD;
@@ -410,8 +411,7 @@ void compare(){
         }
       }
       
-      Serial.print("Keycode: ");
-      Serial.println(code_from_keypad);
+
       code_from_keypad = "";
   }
 }
@@ -472,13 +472,21 @@ void server_func() {
         String code = request->getParam("code", true)->value();
         String totalTime = request->getParam("totalTime", true)->value();
         String valid = request->getParam("validTime", true)->value();
+        Serial.print("ID: ");
+        Serial.println(id);
+        Serial.print("Code: ");
+        Serial.println(code);
+        Serial.print("Total Time:");
+        Serial.println(totalTime);
+        Serial.print("Valid: ");
+        Serial.println(valid);
 
         if(valid == "TRUE")
         {
             serverCode[countCode] = code;
             timercode[countCode] = stringToInt(totalTime);
             
-            Serial.println(stringToInt(totalTime));
+            // Serial.println(stringToInt(totalTime));
 
             device[countCode] = keyNum_xToi(id);
             countCode++;
