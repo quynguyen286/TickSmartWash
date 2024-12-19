@@ -1,9 +1,7 @@
-#ifdef WIFI_CONNECT_H
+#ifndef WIFI_CONNECT_H
 #define WIFI_CONNECT_H
 
+#include "global.h"
 void initWiFi();
-void reconnect_to_wifi();
-void setupwifi();
-void callAPI();
 
 #endif

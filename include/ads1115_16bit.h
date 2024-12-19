@@ -4,7 +4,6 @@
 #include "ADS1X15.h"
 
 extern ADS1115 ADS;   
-extern ADS1115 ADS1; 
 
 float doc_ADS(int n);
 

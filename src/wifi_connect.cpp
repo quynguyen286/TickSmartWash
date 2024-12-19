@@ -1,11 +1,22 @@
-#include "wifi.h"
-#include <WiFi.h>
-#include <HTTPClient.h>
-#include <Arduino.h>
-#include <Wire.h>
+#include "wifi_connect.h"
 
 
 
+void initWiFi() {
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.println("WiFi...");
+    Serial.println("Connecting to WiFi...");
+  }
+  lcd.clear();
+  lcd.setCursor(0, 0);
+  lcd.print(WiFi.localIP());
+  Serial.println("Connected to WiFi");
+  Serial.println(WiFi.localIP());
+}
 
 
 
