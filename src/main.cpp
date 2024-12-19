@@ -1,9 +1,10 @@
 #include "global.h"
 #include <TaskScheduler.h>
 
-// void notFound(AsyncWebServerRequest *request) {
-//     request->send(404, "text/plain", "Not found");
-// }
+void notFound(AsyncWebServerRequest *request) {
+    request->send(404, "text/plain", "Not found");
+}
+
 
 Scheduler ts;
 
@@ -15,6 +16,7 @@ Task device_process1_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceP
 Task device_process2_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceProcess2, &ts);
 Task device_process3_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceProcess3, &ts);
 Task device_process4_schedule   (1000 * TASK_MILLISECOND, TASK_FOREVER, &deviceProcess4, &ts);
+
 void setup(){ 
   Serial.begin(9600);
   Serial.println("Scheduling Options: setup()");
@@ -69,7 +71,7 @@ void setup(){
   Serial.println("prc4 online ");
   device_process4_schedule.enable();
 
-  // server.onNotFound(notFound);
+  server.onNotFound(notFound);
   server.begin();
 }
 void loop(){ 

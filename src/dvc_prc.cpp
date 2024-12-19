@@ -113,5 +113,4 @@ void timer(){
   {
     if(deviceTimer[i] > 0) deviceTimer[i]--;
   }
-  //if(lcd_timer > 0)lcd_timer--;
 }

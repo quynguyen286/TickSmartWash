@@ -43,3 +43,4 @@ int sample[9] = {0};
 int deviceTimer[9];
 int waitConnectTimer = 300;
 
+ADS1115 ADS(0x48);

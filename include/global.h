@@ -5,7 +5,7 @@
 #include <Wire.h>
 #include <Arduino.h>
 #include <WiFi.h>
-#include <HTTPClient.h>
+// #include <HTTPClient.h>
 #include <LiquidCrystal_I2C.h>
 #include "str_prc.h"
 #include "FS.h"
@@ -19,10 +19,10 @@
 #include "dvc_prc.h"
 #include "server.h"
 #include "ADS1X15.h"
-#include "i2c_scanner.h"
+// #include "i2c_scanner.h"
 #include "ads1115_16bit.h"
-#include "IO_expansion.h"
-#include "Adafruit_MPR121.h"
+// #include "IO_expansion.h"
+#include <Adafruit_MPR121.h>
 #include <Adafruit_BusIO_Register.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
@@ -81,6 +81,8 @@ extern int keyin;
 
 // active_flag for 8 device
 extern int device_flag[8];
+
+extern ADS1115 ADS;
 
 extern String message;
 extern String message1;

@@ -1,7 +1,5 @@
 #include "ads1115_16bit.h"
-#include "ADS1X15.h"
 
-ADS1115 ADS(0x48);
 
 float doc_ADS(int n)
 {
