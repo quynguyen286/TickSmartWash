@@ -1,9 +1,6 @@
 #include "global.h"
 #include <TaskScheduler.h>
 
-void notFound(AsyncWebServerRequest *request) {
-    request->send(404, "text/plain", "Not found");
-}
 
 
 Scheduler ts;

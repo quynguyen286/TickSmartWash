@@ -1,6 +1,8 @@
 #include "server.h"
 
-
+void notFound(AsyncWebServerRequest *request) {
+    request->send(404, "text/plain", "Not found");
+}
 
 void server_func() {
   server.on("/post", HTTP_POST, [](AsyncWebServerRequest *request) {
