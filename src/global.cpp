@@ -1,8 +1,8 @@
 #include "global.h"
 
 // Định nghĩa WiFi
-const char *ssid = "Kingshouse-1B";
-const char *password = "kingshouse2020";
+const char *ssid = "Garage Coffee";
+const char *password= "garageopen24h";
 const char* PARAM_MESSAGE = "message";
 AsyncWebServer server(8080);
 

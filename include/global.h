@@ -5,6 +5,8 @@
 #include <Wire.h>
 #include <Arduino.h>
 #include <WiFi.h>
+//  #include <WiFiClientSecure.h>
+// #include <WebSockets.h>
 // #include <HTTPClient.h>
 #include <LiquidCrystal_I2C.h>
 #include "str_prc.h"
